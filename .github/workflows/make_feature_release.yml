@@ -30,7 +30,7 @@ jobs:
           version: ${{ steps.get-latest-tag.outputs.tag }}
 
       # Set Settings > Actions > General > "Workflow permissions" to "Read and write permissions"
-      - name: Create Next Hotfix Tag
+      - name: Create Next Github Tag
         uses: EndBug/latest-tag@v1.6.1
         with:
           ref: ${{ steps.next_tag.outputs.v_minor }}
