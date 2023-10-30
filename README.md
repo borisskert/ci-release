@@ -1,3 +1,3 @@
 # ci-release
 
-another change
+v0.1.0
