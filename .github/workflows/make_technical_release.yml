@@ -20,13 +20,18 @@ jobs:
           # https://stackoverflow.com/a/75348554/13213024
           token: ${{ secrets.PERSONAL_TOKEN }}
 
-      - uses: actions-ecosystem/action-get-latest-tag@v1
+#      - uses: actions-ecosystem/action-get-latest-tag@v1
+#        id: get-latest-tag
+
+      - uses: pozetroninc/github-action-get-latest-release@v0.7.0
         id: get-latest-tag
+        with:
+          repository: ${{ github.repository }}
 
       - name: Determine next Hotfix Version
         id: next_tag
         env:
-          GIT_TAG_INPUT: ${{ steps.get-latest-tag.outputs.tag }}
+          GIT_TAG_INPUT: ${{ steps.get-latest-tag.outputs.release }}
         run: |
           VERSION=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+.[0-9]+)(-([0-9]+))?/g) {print $1}')
           TECHNICAL_RELEASE=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+.[0-9]+)(-([0-9]+))?/g) {print $3}')
