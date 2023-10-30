@@ -1,3 +1,3 @@
 # ci-release
 
-v0.4.0
+a technical again
