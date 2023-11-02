@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+#          fetch-depth: 0
 
           # When you use the repository's GITHUB_TOKEN to perform tasks, events triggered by the GITHUB_TOKEN,
           # except workflow_dispatch and repository_dispatch, will not create a new workflow run. This
@@ -28,14 +28,14 @@ jobs:
         env:
           GIT_TAG_INPUT: ${{ steps.get-latest-tag.outputs.tag }}
         run: |
-          VERSION=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+))?/g) {print $1}')
+          APP_VERSION=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+))?/g) {print $1}')
           TECHNICAL_RELEASE=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+))?/g) {print $3}')
           
-          echo "${VERSION}"
-          echo "${TECHNICAL_RELEASE}"
+          echo "App version: ${APP_VERSION}"
+          echo "Technical Release: ${TECHNICAL_RELEASE}"
           
-          NEXT_VERSION="${VERSION}-$(($TECHNICAL_RELEASE+1))"
-          echo "${NEXT_VERSION}"
+          NEXT_VERSION="${APP_VERSION}-$(($TECHNICAL_RELEASE+1))"
+          echo "Next Release Tag: ${NEXT_VERSION}"
           
           echo "nextVersion=${NEXT_VERSION}" >> ${GITHUB_ENV}
 
