@@ -14,8 +14,8 @@ jobs:
         with:
           fetch-depth: 0
 
-          # When you use the repository's GITHUB_TOKEN to perform tasks, events triggered by the GITHUB_TOKEN, with
-          # the exception of workflow_dispatch and repository_dispatch, will not create a new workflow run. This
+          # When you use the repository's GITHUB_TOKEN to perform tasks, events triggered by the GITHUB_TOKEN,
+          # except workflow_dispatch and repository_dispatch, will not create a new workflow run. This
           # prevents you from accidentally creating recursive workflow runs.
           # https://stackoverflow.com/a/75348554/13213024
           token: ${{ secrets.PERSONAL_TOKEN }}
