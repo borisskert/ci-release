@@ -24,6 +24,9 @@ jobs:
         id: latest_release
         uses: joutvhu/get-release@v1
         with:
+          latest: true
+          prerelease: false
+          pattern: '^v.*'
           debug: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
