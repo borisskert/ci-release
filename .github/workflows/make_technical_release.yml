@@ -28,8 +28,9 @@ jobs:
         env:
           GIT_TAG_INPUT: ${{ steps.get-latest-tag.outputs.tag }}
         run: |
-          VERSION=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+.[0-9]+)(-([0-9]+))?/g) {print $1}')
-          TECHNICAL_RELEASE=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+.[0-9]+)(-([0-9]+))?/g) {print $3}')
+          VERSION=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+))?/g) {print $1}')
+          TECHNICAL_RELEASE=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+))?/g) {print $3}')
+          
           echo "${VERSION}"
           echo "${TECHNICAL_RELEASE}"
           
