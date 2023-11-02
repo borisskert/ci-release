@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-#          fetch-depth: 0
+          fetch-depth: 0
 
           # When you use the repository's GITHUB_TOKEN to perform tasks, events triggered by the GITHUB_TOKEN,
           # except workflow_dispatch and repository_dispatch, will not create a new workflow run. This
