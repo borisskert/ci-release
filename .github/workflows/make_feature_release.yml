@@ -31,11 +31,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Parse App Version
+        env:
+          GIT_TAG_INPUT: ${{ steps.latest_release.outputs.tag_name }}
+        run: |
+          APP_VERSION=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-[0-9]+)?/g) {print $1}')
+          echo "appVersion=${APP_VERSION}" >> ${GITHUB_ENV}
+
       - name: Determine Next Version
         id: next_tag
         uses: WyriHaximus/github-action-next-semvers@v1
         with:
-          version: ${{ steps.latest_release.outputs.tag_name }}
+          version: ${{ env.appVersion }}
 
       # Set Settings > Actions > General > "Workflow permissions" to "Read and write permissions"
       - name: Create Next Github Tag
