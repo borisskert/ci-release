@@ -20,14 +20,22 @@ jobs:
           # https://stackoverflow.com/a/75348554/13213024
           token: ${{ secrets.PERSONAL_TOKEN }}
 
-      - uses: actions-ecosystem/action-get-latest-tag@v1
-        id: get-latest-tag
+      - name: Get Latest Release
+        id: latest_release
+        uses: joutvhu/get-release@v1
+        with:
+          latest: true
+          prerelease: false
+          pattern: '^v.*'
+          debug: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Determine next Hotfix Version
+      - name: Determine Next Version
         id: next_tag
         uses: WyriHaximus/github-action-next-semvers@v1
         with:
-          version: ${{ steps.get-latest-tag.outputs.tag }}
+          version: ${{ steps.latest_release.outputs.tag }}
 
       # Set Settings > Actions > General > "Workflow permissions" to "Read and write permissions"
       - name: Create Next Github Tag
