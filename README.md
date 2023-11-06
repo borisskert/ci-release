@@ -1,4 +1,3 @@
 # ci-release
 
-a technical again
-and a second time
+v0.5.0-11
