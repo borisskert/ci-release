@@ -18,6 +18,12 @@ jobs:
           # except workflow_dispatch and repository_dispatch, will not create a new workflow run. This
           # prevents you from accidentally creating recursive workflow runs.
           # https://stackoverflow.com/a/75348554/13213024
+
+          # Create a personal access token with the `repo` and `workflow` scopes.
+          # https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+
+          # This step will fail if your personal access token gets expired or revoked
+          # with message "could not read Username for 'https://github.com': terminal prompts disabled"
           token: ${{ secrets.PERSONAL_TOKEN }}
 
       - name: Get Latest Release
