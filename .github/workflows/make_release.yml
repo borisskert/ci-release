@@ -1,0 +1,100 @@
+---
+# ---------------------------------------------------------------------------------------------------
+#
+# This workflow is used to create new release Git Tags depending on the specified `release_type` setting.
+#
+# It's intended for this Workflow to be triggered manually.
+#
+# release_type:
+# - major: Creates the next Major version, i.e. 1.2.3 -> 2.0.0
+# - minor: Creates the next Minor version, i.e. 1.2.3 -> 1.3.0
+# - patch: Creates the next Patch version, i.e. 1.2.3 -> 1.2.4
+#
+# It performs following steps:
+# - Searches for our latest Release version
+# - Determine the next Release version
+# - Creates a new Git Tag depending on the specified `release_type` setting
+#
+# ---------------------------------------------------------------------------------------------------
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Release Type
+        required: true
+        default: minor
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+name: Make Release
+run-name: Make ${{ inputs.release_type }} Release
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+          # When you use the repository's GITHUB_TOKEN to perform tasks, events triggered by the GITHUB_TOKEN,
+          # except workflow_dispatch and repository_dispatch, will not create a new workflow run. This
+          # prevents you from accidentally creating recursive workflow runs.
+          # https://stackoverflow.com/a/75348554/13213024
+
+          # Create a personal access token with the `repo` and `workflow` scopes
+          # at: https://github.com/settings/tokens/new
+          # Also see: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+
+          # This step will fail if your personal access token gets expired or revoked
+          # with message "could not read Username for 'https://github.com': terminal prompts disabled"
+          token: ${{ secrets.PERSONAL_TOKEN }}
+
+      - name: Get Latest Release
+        id: latest_release
+        uses: joutvhu/get-release@v1
+        with:
+          latest: true
+          prerelease: true
+          pattern: '^v.*'
+          debug: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse App Version
+        env:
+          GIT_TAG_INPUT: ${{ steps.latest_release.outputs.tag_name }}
+        run: |
+          APP_VERSION=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-[0-9]+)?/g) {print $1}')
+          echo "appVersion=${APP_VERSION}" >> ${GITHUB_ENV}
+
+      - name: Determine Next Version
+        id: next_tag
+        uses: WyriHaximus/github-action-next-semvers@v1
+        with:
+          version: ${{ env.appVersion }}
+
+      # Set Settings > Actions > General > "Workflow permissions" to "Read and write permissions"
+      - name: Create Next Github Tag for Major Release
+        if: github.event.inputs.release_type == 'major'
+        uses: EndBug/latest-tag@v1.6.1
+        with:
+          ref: ${{ steps.next_tag.outputs.v_major }}
+
+      - name: Create Next Github Tag for Minor Release
+        if: github.event.inputs.release_type == 'minor'
+        uses: EndBug/latest-tag@v1.6.1
+        with:
+          ref: ${{ steps.next_tag.outputs.v_minor }}
+
+      - name: Create Next Github Tag for Patch Release
+        if: github.event.inputs.release_type == 'patch'
+        uses: EndBug/latest-tag@v1.6.1
+        with:
+          ref: ${{ steps.next_tag.outputs.v_patch }}
