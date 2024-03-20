@@ -1,8 +1,14 @@
----
-name: Download latest release artifact
-
 on:
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: Release Version (inclusive starting `v`, i.e. 'v3.2.1' or 'latest')
+        required: true
+        default: latest
+        type: string
+
+name: Download Release Artifact
+run-name: Download ${{ inputs.release_version }} Release Artifact
 
 jobs:
   build:
@@ -11,13 +17,51 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - uses: actions-ecosystem/action-get-latest-tag@v1
-        id: get-latest-tag
+      - name: Get Latest Release
+        if: github.event.inputs.release_version == 'latest'
+        id: latest_release
+        uses: joutvhu/get-release@v1
+        with:
+          latest: true
+          prerelease: true
+          pattern: '^v.*'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download latest appcast.xml
+      - name: Get Specified Release
+        if: github.event.inputs.release_version != 'latest'
+        id: specific_release
+        uses: joutvhu/get-release@v1
+        with:
+          latest: false
+          prerelease: true
+          tag_name: ${{ github.event.inputs.release_version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Release Version from latest
+        if: github.event.inputs.release_version == 'latest'
+        env:
+          LATEST_GIT_VERSION_TAG: ${{ steps.latest_release.outputs.tag_name }}
+        run: |
+          echo "GIT_TAG_VERSION=${LATEST_GIT_VERSION_TAG#}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${LATEST_GIT_VERSION_TAG#v}" >> $GITHUB_ENV
+
+      - name: Setup Release Version from specified
+        if: github.event.inputs.release_version != 'latest'
+        env:
+          SPECIFIED_GIT_VERSION_TAG: ${{ steps.specific_release.outputs.tag_name }}
+        run: |
+          echo "GIT_TAG_VERSION=${SPECIFIED_GIT_VERSION_TAG#}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${SPECIFIED_GIT_VERSION_TAG#v}" >> $GITHUB_ENV
+
+      - name: Download Release Artifact
         uses: dsaltares/fetch-gh-release-asset@1.1.1
         with:
+          version: tags/${{ env.GIT_TAG_VERSION }}
           file: 'README.md'
           token: ${{ secrets.GITHUB_TOKEN }}
 
