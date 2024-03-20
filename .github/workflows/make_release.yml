@@ -9,6 +9,7 @@
 # - major: Creates the next Major version, i.e. 1.2.3 -> 2.0.0
 # - minor: Creates the next Minor version, i.e. 1.2.3 -> 1.3.0
 # - patch: Creates the next Patch version, i.e. 1.2.3 -> 1.2.4
+# - technical: Creates the next Technical version, i.e. 1.2.3 -> 1.2.3-1
 #
 # It performs following steps:
 # - Searches for our latest Release version
@@ -29,6 +30,7 @@ on:
           - major
           - minor
           - patch
+          - technical
 
 name: Make Release
 run-name: Make ${{ inputs.release_type }} Release
@@ -68,6 +70,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Parse App Version
+        if: github.event.inputs.release_type != 'technical'
         env:
           GIT_TAG_INPUT: ${{ steps.latest_release.outputs.tag_name }}
         run: |
@@ -75,10 +78,27 @@ jobs:
           echo "appVersion=${APP_VERSION}" >> ${GITHUB_ENV}
 
       - name: Determine Next Version
+        if: github.event.inputs.release_type != 'technical'
         id: next_tag
         uses: WyriHaximus/github-action-next-semvers@v1
         with:
           version: ${{ env.appVersion }}
+
+      - name: Determine Next Version (technical)
+        if: github.event.inputs.release_type == 'technical'
+        env:
+          GIT_TAG_INPUT: ${{ steps.latest_release.outputs.tag_name }}
+        run: |
+          APP_VERSION=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+))?/g) {print $1}')
+          TECHNICAL_RELEASE=$(echo "$GIT_TAG_INPUT" | perl -lane 'while (/(v[0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+))?/g) {print $3}')
+          
+          echo "App version: ${APP_VERSION}"
+          echo "Technical Release: ${TECHNICAL_RELEASE}"
+          
+          NEXT_VERSION="${APP_VERSION}-$(($TECHNICAL_RELEASE+1))"
+          echo "Next Release Tag: ${NEXT_VERSION}"
+          
+          echo "nextVersion=${NEXT_VERSION}" >> ${GITHUB_ENV}
 
       # Set Settings > Actions > General > "Workflow permissions" to "Read and write permissions"
       - name: Create Next Github Tag for Major Release
@@ -98,3 +118,9 @@ jobs:
         uses: EndBug/latest-tag@v1.6.1
         with:
           ref: ${{ steps.next_tag.outputs.v_patch }}
+
+      - name: Create Next Github Tag
+        if: github.event.inputs.release_type == 'technical'
+        uses: EndBug/latest-tag@v1.6.1
+        with:
+          ref: ${{ env.nextVersion }}
